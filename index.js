@@ -3,8 +3,8 @@ async function setupPlugin({ config, global }) {
 
     global.posthogOptions = {
         headers: {
-            Authorization: `Bearer ${config.posthogApiKey}`,
-        },
+            Authorization: `Bearer ${config.posthogApiKey}`
+        }
     }
 
     const ghBasicAuthToken = Buffer.from(`${config.ghOwner}:${config.ghToken}`).toString('base64')
@@ -12,8 +12,8 @@ async function setupPlugin({ config, global }) {
     global.ghOptions = config.ghToken
         ? {
               headers: {
-                  Authorization: `Basic ${ghBasicAuthToken}`,
-              },
+                  Authorization: `Basic ${ghBasicAuthToken}`
+              }
           }
         : {}
 
@@ -32,7 +32,7 @@ async function setupPlugin({ config, global }) {
             throw new Error('Invalid GitHub repo owner or name')
         }
     } catch {
-        throw new Error('Invalid PostHog Personal API key')
+        throw new Error('Invalid PostHog Personal API key or GitHub Personal Token')
     }
 }
 
@@ -54,7 +54,7 @@ async function runEveryDay({ config, global }) {
     const newTags = ghTagsJson
         .map((tag) => ({
             name: tag.ref.split('refs/tags/')[1],
-            url: tag.object.url,
+            url: tag.object.url
         }))
         .filter((tag) => !annotations.has(tag.name))
 
@@ -67,13 +67,13 @@ async function runEveryDay({ config, global }) {
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${config.posthogApiKey}`,
+                    Authorization: `Bearer ${config.posthogApiKey}`
                 },
                 body: JSON.stringify({
                     content: tag.name,
                     scope: 'organization',
-                    date_marker: getTagDate(tagDetailsJson),
-                }),
+                    date_marker: getTagDate(tagDetailsJson)
+                })
             },
             'POST'
         )
