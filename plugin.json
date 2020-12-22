@@ -1,0 +1,48 @@
+{
+    "name": "posthog-release-tracking-plugin",
+    "url": "https://github.com/PostHog/posthog-release-tracking-plugin",
+    "description": "Track releases in PostHog.",
+    "main": "index.js",
+    "config": {
+        "posthogHost": {
+            "hint": "Optional - defaults to https://app.posthog.com",
+            "name": "URL of your PostHog instance",
+            "type": "string",
+            "order": 1,
+            "default": "https://app.posthog.com",
+            "required": false
+        },
+        "posthogApiKey": {
+            "hint": "Your Personal API Key is not the same as the Project API key",
+            "name": "PostHog API Key",
+            "type": "string",
+            "order": 2,
+            "default": "",
+            "required": true
+        },
+        "ghOwner": {
+            "hint": "Username or Organization Name",
+            "name": "GitHub Repository Owner",
+            "type": "string",
+            "order": 3,
+            "default": "",
+            "required": true
+        },
+        "ghRepo": {
+            "hint": "",
+            "name": "GitHub Repository Name",
+            "type": "string",
+            "order": 4,
+            "default": "",
+            "required": true
+        },
+        "ghToken": {
+            "hint": "Required for private repos only - also useful to prevent rate limiting.",
+            "name": "GitHub Personal Token",
+            "type": "string",
+            "order": 5,
+            "default": "",
+            "required": false
+        }
+    }
+}
