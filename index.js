@@ -98,5 +98,5 @@ async function fetchWithRetry(url, options = {}, method = 'GET', isRetry = false
 }
 
 function getTagDate(tag) {
-    return tag.tagger ? tag.tagger.date : tag.author ? tag.author.date : tag.committer ? tag.committer.date : null
+    return tag.committer ? tag.committer.date : tag.tagger ? tag.tagger.date : tag.author ? tag.author.date : null
 }
