@@ -1,4 +1,4 @@
-async function setupPlugin({ config, global }) {
+async function setupPlugin({ config, global, cache }) {
     global.posthogHost = config.posthogHost.includes('http') ? config.posthogHost : 'https://' + config.posthogHost
 
     global.posthogOptions = {
@@ -34,16 +34,28 @@ async function setupPlugin({ config, global }) {
     } catch {
         throw new Error('Invalid PostHog Personal API key or GitHub Personal Token')
     }
+    await runEveryDay({ config, global, cache })
 }
 
-async function runEveryDay({ config, global }) {
-    const annotationsResponse = await fetchWithRetry(
-        `${global.posthogHost}/api/annotation/?scope=organization&deleted=false`,
-        global.posthogOptions
-    )
+async function runEveryDay({ config, global, cache }) {
+    const lastRun = await cache.get('lastRun')
+    if (
+        lastRun &&
+        new Date().getTime() - Number(lastRun) < 3600000 // 60*60*1000ms = 1 hour
+    ) {
+        return
+    }
+    let allPostHogAnnotations = []
+    let next = `${global.posthogHost}/api/annotation/?scope=organization&deleted=false`
+    while (next) {
+        const annotationsResponse = await fetchWithRetry(next, global.posthogOptions)
+        const annotationsJson = await annotationsResponse.json()
+        const annotationNames = annotationsJson.results.map((annotation) => annotation.content)
+        next = annotationsJson.next
+        allPostHogAnnotations = [...allPostHogAnnotations, ...annotationNames]
+    }
 
-    const annotationsJson = await annotationsResponse.json()
-    let annotations = new Set(annotationsJson.results.map((annotation) => annotation.content))
+    let annotations = new Set(allPostHogAnnotations)
 
     const ghTagsResponse = await fetchWithRetry(
         `https://api.github.com/repos/${config.ghOwner}/${config.ghRepo}/git/refs/tags`,
@@ -82,6 +94,7 @@ async function runEveryDay({ config, global }) {
             posthog.capture('created_tag_annotation', { tag: tag.name })
         }
     }
+    await cache.set('lastRun', new Date().getTime())
 }
 
 async function fetchWithRetry(url, options = {}, method = 'GET', isRetry = false) {
