@@ -1,4 +1,4 @@
-async function setupPlugin({ config, global, cache }) {
+async function setupPlugin({ config, global }) {
     global.posthogHost = config.posthogHost.includes('http') ? config.posthogHost : 'https://' + config.posthogHost
 
     global.posthogOptions = {
@@ -34,10 +34,9 @@ async function setupPlugin({ config, global, cache }) {
     } catch {
         throw new Error('Invalid PostHog Personal API key or GitHub Personal Token')
     }
-    await runEveryDay({ config, global, cache })
 }
 
-async function runEveryDay({ config, global, cache }) {
+async function runEveryMinute({ config, global, cache }) {
     const lastRun = await cache.get('lastRun')
     if (
         lastRun &&
