@@ -1,3 +1,5 @@
+class KnownError extends Error {}
+
 async function setupPlugin({ config, global }) {
     global.posthogHost = config.posthogHost.includes('http') ? config.posthogHost : 'https://' + config.posthogHost
 
@@ -26,13 +28,18 @@ async function setupPlugin({ config, global }) {
         )
 
         if (posthogRes.status !== 200) {
-            throw new Error('Invalid PostHog Personal API key')
+            const resJson = await posthogRes.json()
+            throw new KnownError(`Invalid PostHog Personal API key or host. Response: ${JSON.stringify(resJson)}`)
         }
         if (githubRes.status !== 200) {
-            throw new Error('Invalid GitHub repo owner or name')
+            const resJson = await githubRes.json()
+            throw new KnownError(`Invalid GitHub repo owner, name, or token, permissions. Error: ${JSON.stringify(resJson)}`)
         }
-    } catch {
-        throw new Error('Invalid PostHog Personal API key or GitHub Personal Token')
+    } catch (e) {
+        if (e instanceof KnownError) {
+            throw(e)
+        }
+        throw new Error('Unknown error when trying to connect to GitHub and PostHog.')
     }
 }
 
