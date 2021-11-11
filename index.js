@@ -20,7 +20,7 @@ async function setupPlugin({ config, global }) {
         : {}
 
     try {
-        const posthogRes = await fetchWithRetry(`${global.posthogHost}/api/users/@me`, global.posthogOptions)
+        const posthogRes = await posthog.api.get(`/api/users/@me`, { host: global.posthogHost })
 
         const githubRes = await fetchWithRetry(
             `https://api.github.com/repos/${config.ghOwner}/${config.ghRepo}`,
@@ -54,7 +54,8 @@ async function runEveryMinute({ config, global, cache }) {
     let allPostHogAnnotations = []
     let next = `${global.posthogHost}/api/annotation/?scope=organization&deleted=false`
     while (next) {
-        const annotationsResponse = await fetchWithRetry(next, global.posthogOptions)
+        const nextPath = next.replace(global.posthogHost, '')
+        const annotationsResponse = await posthog.api.get(nextPath, { host: global.posthogHost })
         const annotationsJson = await annotationsResponse.json()
         const annotationNames = annotationsJson.results.map((annotation) => annotation.content)
         next = annotationsJson.next
@@ -80,20 +81,17 @@ async function runEveryMinute({ config, global, cache }) {
         const tagDetailsResponse = await fetchWithRetry(tag.url, global.ghOptions)
         const tagDetailsJson = await tagDetailsResponse.json()
 
-        const createAnnotationRes = await fetchWithRetry(
-            `${global.posthogHost}/api/annotation/`,
+        const createAnnotationRes = await posthog.api.post(
+            `/api/annotation/`,
             {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${config.posthogApiKey}`
-                },
-                body: JSON.stringify({
+                host: global.posthogHost,
+                data: {
                     content: tag.name,
                     scope: 'organization',
                     date_marker: getTagDate(tagDetailsJson)
-                })
+                    
+                }
             },
-            'POST'
         )
 
         if (createAnnotationRes.status === 201) {
