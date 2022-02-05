@@ -32,7 +32,7 @@
         {
             "key": "ghRepo",
             "hint": "",
-            "name": "GitHub Repository Name",
+            "name": "GitHub Repository Names (comma separated)",
             "type": "string",
             "default": "",
             "required": true
