@@ -1,4 +1,4 @@
-class KnownError extends Error {}
+class KnownError extends Error { }
 
 async function setupPlugin({ config, global }) {
     global.posthogHost = config.posthogHost.includes('http') ? config.posthogHost : 'https://' + config.posthogHost
@@ -9,35 +9,39 @@ async function setupPlugin({ config, global }) {
         }
     }
 
+    global.ghRepos = config.ghRepo.split(',')
+
     const ghBasicAuthToken = Buffer.from(`${config.ghOwner}:${config.ghToken}`).toString('base64')
 
     global.ghOptions = config.ghToken
         ? {
-              headers: {
-                  Authorization: `Basic ${ghBasicAuthToken}`
-              }
-          }
+            headers: {
+                Authorization: `Basic ${ghBasicAuthToken}`
+            }
+        }
         : {}
 
     try {
         const posthogRes = await fetchWithRetry(`${global.posthogHost}/api/users/@me`, global.posthogOptions)
-
-        const githubRes = await fetchWithRetry(
-            `https://api.github.com/repos/${config.ghOwner}/${config.ghRepo}`,
-            global.ghOptions
-        )
-
         if (posthogRes.status !== 200) {
             const resJson = await posthogRes.json()
             throw new KnownError(`Invalid PostHog Personal API key or host. Response: ${JSON.stringify(resJson)}`)
         }
-        if (githubRes.status !== 200) {
-            const resJson = await githubRes.json()
-            throw new KnownError(`Invalid GitHub repo owner, name, or token, permissions. Error: ${JSON.stringify(resJson)}`)
-        }
+
+        global.ghRepos.forEach(async function (ghRepo) {
+            const githubRes = await fetchWithRetry(
+                `https://api.github.com/repos/${config.ghOwner}/${ghRepo}`,
+                global.ghOptions
+            )
+
+            if (githubRes.status !== 200) {
+                const resJson = await githubRes.json()
+                throw new KnownError(`Invalid GitHub repo owner, name, or token, permissions. Error: ${JSON.stringify(resJson)}`)
+            }
+        })
     } catch (e) {
         if (e instanceof KnownError) {
-            throw(e)
+            throw (e)
         }
         throw new Error('Unknown error when trying to connect to GitHub and PostHog.')
     }
@@ -63,43 +67,45 @@ async function runEveryMinute({ config, global, cache }) {
 
     let annotations = new Set(allPostHogAnnotations)
 
-    const ghTagsResponse = await fetchWithRetry(
-        `https://api.github.com/repos/${config.ghOwner}/${config.ghRepo}/git/refs/tags`,
-        global.ghOptions
-    )
-    const ghTagsJson = await ghTagsResponse.json()
-
-    const newTags = ghTagsJson
-        .map((tag) => ({
-            name: tag.ref.split('refs/tags/')[1],
-            url: tag.object.url
-        }))
-        .filter((tag) => !annotations.has(tag.name))
-
-    for (let tag of newTags) {
-        const tagDetailsResponse = await fetchWithRetry(tag.url, global.ghOptions)
-        const tagDetailsJson = await tagDetailsResponse.json()
-
-        const createAnnotationRes = await fetchWithRetry(
-            `${global.posthogHost}/api/annotation/`,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${config.posthogApiKey}`
-                },
-                body: JSON.stringify({
-                    content: tag.name,
-                    scope: 'organization',
-                    date_marker: getTagDate(tagDetailsJson)
-                })
-            },
-            'POST'
+    global.ghRepos.forEach(async function (ghRepo) {
+        const ghTagsResponse = await fetchWithRetry(
+            `https://api.github.com/repos/${config.ghOwner}/${ghRepo}/git/refs/tags`,
+            global.ghOptions
         )
+        const ghTagsJson = await ghTagsResponse.json()
 
-        if (createAnnotationRes.status === 201) {
-            posthog.capture('created_tag_annotation', { tag: tag.name })
+        const newTags = ghTagsJson
+            .map((tag) => ({
+                name: `${ghRepo}:` + tag.ref.split('refs/tags/')[1],
+                url: tag.object.url
+            }))
+            .filter((tag) => !annotations.has(tag.name))
+
+        for (let tag of newTags) {
+            const tagDetailsResponse = await fetchWithRetry(tag.url, global.ghOptions)
+            const tagDetailsJson = await tagDetailsResponse.json()
+
+            const createAnnotationRes = await fetchWithRetry(
+                `${global.posthogHost}/api/annotation/`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${config.posthogApiKey}`
+                    },
+                    body: JSON.stringify({
+                        content: tag.name,
+                        scope: 'organization',
+                        date_marker: getTagDate(tagDetailsJson)
+                    })
+                },
+                'POST'
+            )
+
+            if (createAnnotationRes.status === 201) {
+                posthog.capture('created_tag_annotation', { tag: tag.name })
+            }
         }
-    }
+    })
     await cache.set('lastRun', new Date().getTime())
 }
 
