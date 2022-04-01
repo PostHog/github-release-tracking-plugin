@@ -68,6 +68,10 @@ async function runEveryMinute({ config, global, cache }) {
         global.ghOptions
     )
     const ghTagsJson = await ghTagsResponse.json()
+    
+    if (!Array.isArray(ghTagsJson)) {
+        throw new KnownError(`Could not load tags from Github. Response: ${JSON.stringify(ghTagsJson)}`)
+    }
 
     const newTags = ghTagsJson
         .map((tag) => ({
