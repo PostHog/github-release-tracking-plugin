@@ -102,6 +102,9 @@ async function runEveryMinute({ config, global, cache }) {
 
         if (createAnnotationRes.status === 201) {
             posthog.capture('created_tag_annotation', { tag: tag.name })
+        } else {
+            const errorMessage = await createAnnotationRes.json()
+            console.error('failed to create tag', tag.name, ' with status ', createAnnotationRes.status, ' and error ', errorMessage)
         }
     }
     await cache.set('lastRun', new Date().getTime())
