@@ -1,3 +1,5 @@
+import { RetryError } from '@posthog/plugin-scaffold'
+
 class KnownError extends Error {}
 
 async function setupPlugin({ config, global }) {
@@ -39,7 +41,7 @@ async function setupPlugin({ config, global }) {
         if (e instanceof KnownError) {
             throw(e)
         }
-        throw new Error('Unknown error when trying to connect to GitHub and PostHog.')
+        throw new RetryError('Unknown error when trying to connect to GitHub and PostHog.')
     }
 }
 
