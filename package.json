@@ -1,8 +1,8 @@
 {
     "name": "posthog-release-tracking-plugin",
-    "version": "0.0.1",
-    "description": "Track releases in PostHog.",
-    "main": "index.js",
+    "version": "0.0.2",
+    "description": "Track GitHub releases in PostHog.",
+    "main": "index.ts",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/PostHog/posthog-release-tracking-plugin.git"
