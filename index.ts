@@ -49,6 +49,7 @@ export async function runEveryHour({ config, global }) {
 
     for (let release of newReleases) {
         const createAnnotationRes = await posthog.api.post(`/api/projects/@current/annotations`, {
+            host: global.posthogHost,
             data: {
                 content: release.name,
                 scope: 'organization',
