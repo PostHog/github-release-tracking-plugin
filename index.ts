@@ -25,7 +25,7 @@ export async function runEveryHour({ config, global }) {
         const annotationNames: string[] = annotationsJson.results.map((annotation) => annotation.content)
 
         nextPath = annotationsJson.next && new URL(annotationsJson.next).pathname
-        allAnnotations.push(annotationNames)
+        allAnnotations = [...allAnnotations, ...annotationNames]
     }
 
     let annotations = new Set(allAnnotations)
