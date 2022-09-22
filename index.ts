@@ -12,7 +12,15 @@ export async function setupPlugin({ config, global }) {
         : {}
 }
 
-export async function runEveryHour({ config, global }) {
+export async function runEveryMinute({ config, global, cache }) {
+    const lastRun = await cache.get('lastRun')
+    if (
+        lastRun &&
+        new Date().getTime() - Number(lastRun) < 3600000 // 60*60*1000ms = 1 hour
+    ) {
+        return
+    }
+
     let allAnnotations = []
     let nextPath = '/api/projects/@current/annotations'
 
@@ -71,4 +79,6 @@ export async function runEveryHour({ config, global }) {
             )
         }
     }
+
+    await cache.set('lastRun', new Date().getTime())
 }
