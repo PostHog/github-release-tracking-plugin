@@ -1,8 +1,8 @@
 {
     "name": "posthog-release-tracking-plugin",
-    "version": "0.0.1",
-    "description": "Track releases in PostHog.",
-    "main": "index.js",
+    "version": "0.0.2",
+    "description": "Track GitHub releases in PostHog.",
+    "main": "index.ts",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/PostHog/posthog-release-tracking-plugin.git"
@@ -14,6 +14,8 @@
     },
     "homepage": "https://github.com/PostHog/posthog-release-tracking-plugin#readme",
     "devDependencies": {
+        "@posthog/plugin-scaffold": "^1.3.4",
+        "@types/node": "^18.7.18",
         "husky": "^4.3.0",
         "lint-staged": "^10.5.2",
         "prettier": "^2.2.1"
