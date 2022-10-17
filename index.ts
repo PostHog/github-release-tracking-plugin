@@ -69,6 +69,7 @@ export async function runEveryMinute({ config, global, cache }) {
             posthog.capture('created_release_annotation', { release: release.name })
         } else {
             const errorMessage = await createAnnotationRes.json()
+
             console.error(
                 'failed to create annotation',
                 release.name,
