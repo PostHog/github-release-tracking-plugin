@@ -2,7 +2,7 @@
     "name": "GitHub Release Tracker",
     "url": "https://github.com/PostHog/posthog-release-tracking-plugin",
     "description": "Track releases in PostHog.",
-    "main": "index.js",
+    "main": "index.ts",
     "config": [
         {
             "key": "posthogHost",
