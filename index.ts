@@ -26,7 +26,9 @@ export async function runEveryMinute({ config, global, cache }) {
 
     while (nextPath) {
         const annotationsRes = await posthog.api.get(nextPath, {
-            host: global.posthogHost
+            host: global.posthogHost,
+            projectApiKey: config.posthogProjectApiKey,
+            personalApiKey: config.posthogPersonalApiKey
         })
 
         const annotationsJson = await annotationsRes.json()
@@ -63,6 +65,8 @@ export async function runEveryMinute({ config, global, cache }) {
     for (let release of newReleases) {
         const createAnnotationRes = await posthog.api.post(`/api/projects/@current/annotations`, {
             host: global.posthogHost,
+            projectApiKey: config.posthogProjectApiKey,
+            personalApiKey: config.posthogPersonalApiKey,
             data: {
                 content: release.name,
                 scope: 'organization',

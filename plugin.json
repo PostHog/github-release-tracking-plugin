@@ -13,6 +13,24 @@
             "required": false
         },
         {
+            "key": "posthogPersonalApiKey",
+            "hint": "Your Personal API Key",
+            "name": "PostHog Personal API Key",
+            "type": "string",
+            "default": "",
+            "required": true,
+            "secret": true
+        },
+        {
+            "key": "posthogProjectApiKey",
+            "hint": "The API key of the current project",
+            "name": "PostHog Project API Key",
+            "type": "string",
+            "default": "",
+            "required": true,
+            "secret": false
+        },
+        {
             "key": "ghOwner",
             "hint": "Username or Organization Name",
             "name": "GitHub Repository Owner",
