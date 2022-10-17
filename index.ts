@@ -30,6 +30,11 @@ export async function runEveryMinute({ config, global, cache }) {
         })
 
         const annotationsJson = await annotationsRes.json()
+
+        if (!Array.isArray(annotationsJson?.results)) {
+            throw new Error(`Could not load annotations. Response: ${JSON.stringify(annotationsJson)}`)
+        }
+
         const annotationNames: string[] = annotationsJson.results.map((annotation) => annotation.content)
 
         nextPath = annotationsJson.next && new URL(annotationsJson.next).pathname
